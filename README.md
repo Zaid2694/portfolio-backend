@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🌐 Portfolio Backend API
 
 This is the backend for my portfolio website. It handles user authentication, contact form submissions, and provides an admin panel to manage messages securely.
@@ -35,3 +36,7 @@ This is the backend for my portfolio website. It handles user authentication, co
 ```bash
 git clone https://github.com/your-username/portfolio-backend.git
 cd portfolio-backend
+=======
+# portfolio-backend
+This is  portfolio-backend  project
+>>>>>>> 11ad37f2ee621c9c1cf4f1f2941320ae91c9ed24
