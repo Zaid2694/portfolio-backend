@@ -34,8 +34,8 @@ This is the backend for my portfolio website. It handles user authentication, co
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/portfolio-backend.git
-cd portfolio-backend
+git clone [https://github.com/Zaid2694/portfolio-backend.git]
+cd Portfolio-backend
 =======
 # portfolio-backend
 This is  portfolio-backend  project
