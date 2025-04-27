@@ -14,31 +14,30 @@ connectDB();
 // Initialize app
 const app = express();
 
-// Middlewares
-app.use(express.json()); // Parse JSON bodies
+// Middleware
+app.use(express.json()); // parse JSON bodies
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 
-// Rate Limiting Middleware (to avoid spam)
+// Rate limiter for contact route
 const limiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 5, // limit each IP to 5 requests per windowMs
+  max: 5,
   message: 'Too many requests, please try again later.',
 });
-app.use('/api/contact', limiter); // Apply only to contact form
+app.use('/api/contact', limiter);
 
-// Routes
-app.use('/api', require('./routes/authRoutes'));
-app.use('/api', require('./routes/contactRoutes'));
+// Auth & Contact routes
+const authRoutes = require('./routes/authRoutes');
+const contactRoutes = require('./routes/contactRoutes');
 
-// Home Route (Optional)
+app.use('/api', authRoutes);
+app.use('/api', contactRoutes);
+
+// Home route
 app.get('/', (req, res) => {
   res.send('Portfolio Backend API is running...');
 });
 
-// Start Server
+// Start server
 const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
