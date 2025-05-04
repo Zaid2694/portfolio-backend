@@ -1,17 +1,16 @@
 const express = require('express');
-const verifyToken = require('../middleware/verifyToken');
+const verifyToken = require('../middleware/verifyToken'); // ✅ Only once
 
 const router = express.Router();
 const {
   submitContactForm,
   getAllMessages
 } = require('../controllers/contactController');
-const verifyToken = require('../middleware/verifyToken');
 
-// Contact form submit route (with reCAPTCHA already handled on frontend)
+// Contact form submit route (reCAPTCHA already verified)
 router.post('/contact', submitContactForm);
 
-// Protected route to get all messages (for dashboard/admin)
+// Protected route to get all messages
 router.get('/messages', verifyToken, getAllMessages);
 
 module.exports = router;
