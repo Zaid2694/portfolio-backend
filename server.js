@@ -1,47 +1,36 @@
-// server.js
 const express = require('express');
 const dotenv = require('dotenv');
-const connectDB = require('./config/db');
 const cors = require('cors');
-const rateLimit = require('express-rate-limit');
+const connectDB = require('./config/db');
+const authRoutes = require('./routes/authRoutes');
+const contactRoutes = require('./routes/contactRoutes');
+const verifyToken = require('./middleware/verifyToken'); // ✅ ONLY ONCE
 
-// Load environment variables
 dotenv.config();
 
-// Connect to MongoDB
-connectDB();
-
-// Initialize app
 const app = express();
 
 // Middleware
-app.use(express.json()); // parse JSON bodies
 app.use(cors({
   origin: process.env.CLIENT_URL,
   credentials: true
 }));
+app.use(express.json());
 
+// Connect DB
+connectDB();
 
-// Rate limiter for contact route
-const limiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 5,
-  message: 'Too many requests, please try again later.',
-});
-app.use('/api/contact', limiter);
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/contact', contactRoutes);
 
-// Auth & Contact routes
-const authRoutes = require('./routes/authRoutes');
-const contactRoutes = require('./routes/contactRoutes');
-
-app.use('/api', authRoutes);
-app.use('/api', contactRoutes);
-
-// Home route
+// Root route
 app.get('/', (req, res) => {
-  res.send('Portfolio Backend API is running...');
+  res.send('Portfolio Backend Running...');
 });
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
