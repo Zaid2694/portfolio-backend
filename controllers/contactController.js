@@ -1,30 +1,38 @@
-const axios = require('axios');
 const Message = require('../models/Message');
 const sendEmail = require('../utils/sendEmail');
+
+const axios = require("axios");
 
 exports.submitMessage = async (req, res) => {
   const { name, email, subject, message, token } = req.body;
 
-  if (!name || !email || !message || !token) {
-    return res.status(400).json({ error: 'Please fill all required fields and verify reCAPTCHA.' });
+  if (!token) {
+    return res.status(400).json({ error: "reCAPTCHA token missing" });
   }
 
-  // Verify reCAPTCHA token with Google
+  // Verify token with Google
+  const secretKey = process.env.RECAPTCHA_SECRET_KEY;
   try {
-    const secretKey = process.env.RECAPTCHA_SECRET_KEY;
-    const response = await axios.post(`https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`);
+    const verifyRes = await axios.post(
+      `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`
+    );
 
-    if (!response.data.success) {
-      return res.status(400).json({ error: 'reCAPTCHA verification failed. Please try again.' });
+    if (!verifyRes.data.success) {
+      return res.status(400).json({ error: "reCAPTCHA verification failed" });
     }
-
-    // Save message to DB and send email
-    const msg = await Message.create({ name, email, subject, message });
-    await sendEmail(name, email, subject, message);
-
-    res.status(200).json({ message: 'Message sent successfully!' });
   } catch (error) {
-    console.error('Error in reCAPTCHA/message:', error.message);
-    res.status(500).json({ error: 'Failed to send message.', details: error.message });
+    return res.status(500).json({ error: "reCAPTCHA verification error" });
+  }
+
+  // Baqi ka existing code (save + email)
+};
+
+
+exports.getMessages = async (req, res) => {
+  try {
+    const messages = await Message.find().sort({ createdAt: -1 });
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to retrieve messages' });
   }
 };
