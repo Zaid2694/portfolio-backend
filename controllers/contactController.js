@@ -1,35 +1,39 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+const Message = require("../models/Message");
+const axios = require("axios");
 
-function ContactForm() {
-  const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
+exports.sendMessage = async (req, res) => {
+  const { name, email, subject, message, token } = req.body;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  if (!token) {
+    return res.status(400).json({ success: false, message: "reCAPTCHA token missing" });
+  }
 
-    const token = await window.grecaptcha.execute(import.meta.env.VITE_RECAPTCHA_SITE_KEY, {
-      action: 'submit',
+  try {
+    // Verify reCAPTCHA
+    const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+    const verifyURL = `https://www.google.com/recaptcha/api/siteverify`;
+
+    const response = await axios.post(verifyURL, null, {
+      params: {
+        secret: secretKey,
+        response: token,
+      },
     });
 
-    try {
-      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/contact`, {
-        ...formData,
-        token,
-      });
+    const data = response.data;
 
-      alert('Form submitted successfully!');
-    } catch (err) {
-      alert('Failed to submit form');
+    if (!data.success || data.score < 0.5) {
+      return res.status(400).json({ success: false, message: "Failed reCAPTCHA verification" });
     }
-  };
 
-  return (
-    <form onSubmit={handleSubmit}>
-      {/* Add form inputs here */}
-      <div className="g-recaptcha" data-sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY} data-size="invisible"></div>
-      <button type="submit">Send</button>
-    </form>
-  );
-}
+    // Save message
+    const newMessage = new Message({ name, email, subject, message });
+    await newMessage.save();
 
-export default ContactForm;
+    res.status(200).json({ success: true, message: "Message sent successfully" });
+
+  } catch (error) {
+    console.error("Error sending message:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
