@@ -1,7 +1,15 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const contactController = require("../controllers/contactController");
+const {
+  submitContactForm,
+  getAllMessages
+} = require('../controllers/contactController');
+const verifyToken = require('../middleware/verifyToken');
 
-router.post("/contact", contactController.sendMessage);
+// Contact form submit route (with reCAPTCHA already handled on frontend)
+router.post('/contact', submitContactForm);
+
+// Protected route to get all messages (for dashboard/admin)
+router.get('/messages', verifyToken, getAllMessages);
 
 module.exports = router;

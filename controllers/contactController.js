@@ -1,39 +1,34 @@
-const Message = require("../models/Message");
-const axios = require("axios");
+const Message = require('../models/Message');
 
-exports.sendMessage = async (req, res) => {
-  const { name, email, subject, message, token } = req.body;
-
-  if (!token) {
-    return res.status(400).json({ success: false, message: "reCAPTCHA token missing" });
-  }
-
+// Save contact form message
+const submitContactForm = async (req, res) => {
   try {
-    // Verify reCAPTCHA
-    const secretKey = process.env.RECAPTCHA_SECRET_KEY;
-    const verifyURL = `https://www.google.com/recaptcha/api/siteverify`;
+    const { name, email, subject, message } = req.body;
 
-    const response = await axios.post(verifyURL, null, {
-      params: {
-        secret: secretKey,
-        response: token,
-      },
-    });
-
-    const data = response.data;
-
-    if (!data.success || data.score < 0.5) {
-      return res.status(400).json({ success: false, message: "Failed reCAPTCHA verification" });
+    if (!name || !email || !subject || !message) {
+      return res.status(400).json({ error: 'All fields are required' });
     }
 
-    // Save message
     const newMessage = new Message({ name, email, subject, message });
     await newMessage.save();
 
-    res.status(200).json({ success: true, message: "Message sent successfully" });
-
+    res.status(200).json({ message: 'Message sent successfully!' });
   } catch (error) {
-    console.error("Error sending message:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ error: 'Server error' });
   }
+};
+
+// Get all messages (dashboard/admin)
+const getAllMessages = async (req, res) => {
+  try {
+    const messages = await Message.find().sort({ createdAt: -1 });
+    res.status(200).json(messages);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch messages' });
+  }
+};
+
+module.exports = {
+  submitContactForm,
+  getAllMessages,
 };
