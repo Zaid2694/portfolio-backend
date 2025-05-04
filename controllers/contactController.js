@@ -1,30 +1,34 @@
 const Message = require('../models/Message');
 const sendEmail = require('../utils/sendEmail');
+// controllers/contactController.js
+import axios from 'axios';
 
-const axios = require("axios");
-
-exports.submitMessage = async (req, res) => {
+export const submitContactForm = async (req, res) => {
   const { name, email, subject, message, token } = req.body;
 
   if (!token) {
-    return res.status(400).json({ error: "reCAPTCHA token missing" });
+    return res.status(400).json({ error: 'reCAPTCHA token missing' });
   }
 
-  // Verify token with Google
-  const secretKey = process.env.RECAPTCHA_SECRET_KEY;
   try {
-    const verifyRes = await axios.post(
-      `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`
-    );
+    const response = await axios.post(`https://www.google.com/recaptcha/api/siteverify`, null, {
+      params: {
+        secret: process.env.RECAPTCHA_SECRET_KEY,
+        response: token,
+      },
+    });
 
-    if (!verifyRes.data.success) {
-      return res.status(400).json({ error: "reCAPTCHA verification failed" });
+    if (!response.data.success) {
+      return res.status(403).json({ error: 'Failed reCAPTCHA verification' });
     }
-  } catch (error) {
-    return res.status(500).json({ error: "reCAPTCHA verification error" });
-  }
 
-  // Baqi ka existing code (save + email)
+    // Save or send email logic here
+    // e.g., save to DB or send to admin email
+
+    res.status(200).json({ message: 'Form submitted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Something went wrong' });
+  }
 };
 
 
