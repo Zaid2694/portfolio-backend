@@ -1,10 +1,17 @@
-const express = require('express');
+import express from 'express';
+import {
+  signup,
+  login,
+  getUser,
+  verifyEmail,
+} from '../controllers/authController.js';
+import verifyToken from '../middleware/verifyToken.js';
+
 const router = express.Router();
-const { signup, login, getUser } = require('../controllers/authController');
-const verifyToken = require('../middleware/verifyToken');
 
 router.post('/signup', signup);
 router.post('/login', login);
 router.get('/user', verifyToken, getUser);
+router.get('/verify-email/:token', verifyEmail); // For email verification (future)
 
-module.exports = router;
+export default router;
