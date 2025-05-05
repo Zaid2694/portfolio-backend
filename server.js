@@ -4,32 +4,43 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const contactRoutes = require('./routes/contactRoutes');
-const verifyToken = require('./middleware/verifyToken'); // ✅ ONLY ONCE
 
 dotenv.config();
 
 const app = express();
 
-// Middleware
+// ✅ CORS configuration for local + Render frontend
+const allowedOrigins = [
+  'http://localhost:5173', // local dev
+  'https://portfolio-frontend-abc123.onrender.com' // 🔁 replace with your actual frontend Render URL
+];
+
 app.use(cors({
-  origin: process.env.CLIENT_URL,
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
+
 app.use(express.json());
 
-// Connect DB
+// ✅ MongoDB connect
 connectDB();
 
-// Routes
+// ✅ Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/contact', contactRoutes);
 
-// Root route
+// ✅ Root endpoint
 app.get('/', (req, res) => {
   res.send('Portfolio Backend Running...');
 });
 
-// Start server
+// ✅ Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
